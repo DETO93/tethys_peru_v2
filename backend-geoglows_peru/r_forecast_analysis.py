@@ -1,5 +1,6 @@
 # Import libraries and dependencies
 import os
+import sys
 import psycopg2
 import pandas as pd
 from sqlalchemy import create_engine
@@ -243,22 +244,33 @@ db = create_engine(token)
 conn = db.connect()
 
 # Getting stations
-stations = pd.read_sql("select * from streamflow_station;", conn)
+stations = pd.read_sql("select * from waterlevel_station;", conn)
+print(stations.head())
 
 # Number of stations 
 n = len(stations)
 
 # For loop
 for i in range(n):
+    print('\n')
     print("{0} - {1}".format(i, stations.code[i]))
     # State variables  
     station_code = stations.code[i]
     station_comid = stations.comid[i]
     try:
         # Query to database
-        observed_data = get_format_data("select distinct * from sf_{0} order by datetime;".format(station_code), conn)
+        observed_data = get_format_data("select distinct * from wl_{0} order by datetime;".format(station_code), conn)
         simulated_data = get_format_data("select * from r_{0};".format(station_comid), conn)
         ensemble_forecast = get_format_data("select * from f_{0};".format(station_comid), conn)
+
+        if observed_data.min().values[0] < 0:
+            observed_data['Water Level (m)'] = observed_data['Water Level (m)'] - observed_data['Water Level (m)'].min()
+
+        simulated_data = simulated_data[simulated_data.index < '2023-04']
+
+        print(observed_data.min().values[0], observed_data.max().values[0])
+        print(simulated_data.min().values[0], simulated_data.max().values[0])
+
         # Corect the historical simulation
         corrected_data = get_bias_corrected_data(simulated_data, observed_data)
         # Return period
@@ -268,13 +280,17 @@ for i in range(n):
         # Forecast stats
         ensemble_stats = get_ensemble_stats(ensemble_forecast)
         # Warning if excced a given return period in 10% of emsemble
-        stations.loc[i, ['alert']] = get_excced_rp(ensemble_stats, ensemble_forecast, return_periods)
+        alert_id = get_excced_rp(ensemble_stats, ensemble_forecast, return_periods)
+        stations.loc[i, ['alert']] = alert_id
+
+        if alert_id != 'R0':
+            print(station_code, alert_id)
+
     except Exception as err:
         print(err)
 
-
 # Insert to database
-stations.to_sql('streamflow_station', con=conn, if_exists='replace', index=False)
+stations.to_sql('waterlevel_station', con=conn, if_exists='replace', index=False)
 
 # Close connection
 conn.close()
