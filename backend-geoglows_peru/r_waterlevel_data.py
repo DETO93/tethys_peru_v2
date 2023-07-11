@@ -67,7 +67,7 @@ try:
     # Retrieve data from database
     stations =  pd.read_sql("select code from waterlevel_station;", conn)
     # stations = ["202930", "221811", "221506","4726E508"]
-    stations = ['472147C4',
+    #stations = ['472147C4',
     '472182DA',
     '472191AC',
     '472210B6',
@@ -136,7 +136,7 @@ try:
     '47E26242',
     '47E27134',
     '47E2E456',
-    '47E9177A']
+    #'47E9177A']
 
 
     # Error list
@@ -155,7 +155,7 @@ try:
         print("Progress: {0} %. Station: {1}".format(prog, code))
         try:
             # Download and insert into database
-            observed_df = get_observed_data(code)
+            observed_df = get_observed_data(code.upper())
             table = 'wl_{0}'.format(code.lower())
             table_tmp = 'wl_{0}'.format(code)
 

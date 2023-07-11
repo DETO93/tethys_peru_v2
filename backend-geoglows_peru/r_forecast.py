@@ -59,7 +59,7 @@ def insert_data(db, comid):
     conn.close()   
 
 # Read comids
-data = pd.read_excel('Peru_Geoglows_Drainage.xlsx', index_col=0)
+data = pd.read_excel('Peru_Geoglows_Drainage_todo.xlsx', index_col=0)
 
 # Setting the connetion to db
 db= create_engine(token)

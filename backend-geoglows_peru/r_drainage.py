@@ -25,7 +25,7 @@ db = create_engine(token)
 conn = db.connect()
 
 # Read the dataframe stations
-data = pd.read_excel('Peru_Geoglows_Drainage.xlsx', index_col=0) 
+data = pd.read_excel('Peru_Geoglows_Drainage_todo.xlsx', index_col=0) 
 df = pd.DataFrame(data)
 
 # Insert to database
